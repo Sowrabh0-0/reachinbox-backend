@@ -7,6 +7,7 @@ dotenv.config();
 export const config = {
     googleClientId: process.env.GOOGLE_CLIENT_ID || '',
     googleClientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
+    sessionSecret: process.env.SESSION_SECRET || '',
     outlookClientId: process.env.OUTLOOK_CLIENT_ID || '',
     outlookClientSecret: process.env.OUTLOOK_CLIENT_SECRET || '',
     openAiApiKey: process.env.OPENAI_API_KEY || '',
