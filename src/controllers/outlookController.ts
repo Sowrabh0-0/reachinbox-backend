@@ -36,8 +36,10 @@ export const handleOutlookOAuthCallback = async (req: Request, res: Response): P
         req.session.outlookAccessToken = accessToken;
 
         logger.info('Outlook tokens successfully stored in session');
-        
-        res.redirect(`${config.frontendUrl}/oauth/callback?provider=outlook&tokens=${accessToken}`);
+        const redirectUrl = `${config.frontendUrl}/oauth-callback?provider=outlook&tokens=${encodeURIComponent(JSON.stringify(accessToken))}`;
+        console.log(redirectUrl);
+
+        res.redirect(redirectUrl);
     } catch (error) {
         logger.error('Error fetching Outlook tokens: ' + (error as Error).message);
         res.status(500).send('Error fetching Outlook tokens');
