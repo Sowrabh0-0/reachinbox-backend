@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import session from 'express-session';
-import { emailService } from '../services/oauthService';
+import { getAuthUrl, fetchTokens, fetchAllEmailDetails } from '../services/oauthService';
 import logger from '../utils/logger';
+import { config } from '../config/env';
 
 declare module 'express-session' {
     interface SessionData {
@@ -9,10 +10,11 @@ declare module 'express-session' {
     }
 }
 
+
 export const startOAuth = (req: Request, res: Response, next: NextFunction): void => {
     try {
         logger.info('Starting Gmail OAuth flow');
-        const authUrl = emailService.getAuthUrl();
+        const authUrl = getAuthUrl();
         res.redirect(authUrl);  
     } catch (error) {
         logger.error('Error starting Gmail OAuth process: ' + (error as Error).message);
@@ -31,10 +33,12 @@ export const handleOAuthCallback = async (req: Request, res: Response, next: Nex
 
     try {
         logger.info('Gmail OAuth callback received, fetching tokens');
-        const tokens = await emailService.fetchTokens(code);
-        req.session.tokens = tokens;  
+        const tokens = await fetchTokens(code);
+        req.session.tokens = tokens;
+
         logger.info('Gmail tokens successfully stored in session');
-        res.redirect('/fetchEmails'); 
+        
+        res.redirect(`${config.frontendUrl}/oauth/callback?provider=gmail&tokens=${JSON.stringify(tokens)}`); 
     } catch (error) {
         logger.error('Error retrieving Gmail access tokens: ' + (error as Error).message);
         res.status(500).send('Error retrieving Gmail access tokens');
@@ -52,7 +56,7 @@ export const fetchEmails = async (req: Request, res: Response): Promise<void> =>
 
     try {
         logger.info('Fetching Gmail emails');
-        const emails = await emailService.fetchEmails(tokens);  
+        const emails = await fetchAllEmailDetails(tokens);
         logger.info('Gmail emails successfully fetched');
         res.json(emails);  
     } catch (error) {

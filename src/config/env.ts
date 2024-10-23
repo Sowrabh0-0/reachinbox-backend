@@ -13,5 +13,6 @@ export const config = {
     outlookClientSecret: process.env.OUTLOOK_CLIENT_SECRET || '',
     outlookRedirectUri: process.env.OUTLOOK_REDIRECT_URI || '',
     openAiApiKey: process.env.OPENAI_API_KEY || '',
-    port: process.env.PORT || 3000
+    port: process.env.PORT || 3000,
+    frontendUrl: process.env.FRONTEND_URL || '',
 };

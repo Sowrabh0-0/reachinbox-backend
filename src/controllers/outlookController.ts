@@ -2,14 +2,13 @@ import { Request, Response } from 'express';
 import { getAuthUrl, fetchTokens, fetchOutlookEmails } from '../services/outlookService';
 import logger from '../utils/logger';
 import 'express-session';
-
+import { config } from '../config/env';
 
 declare module 'express-session' {
     interface Session {
         outlookAccessToken?: string;
     }
 }
-
 
 export const startOutlookOAuth = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -34,9 +33,11 @@ export const handleOutlookOAuthCallback = async (req: Request, res: Response): P
     try {
         logger.info('Outlook OAuth callback received, fetching tokens');
         const accessToken = await fetchTokens(code);
-        req.session.outlookAccessToken = accessToken;  
+        req.session.outlookAccessToken = accessToken;
+
         logger.info('Outlook tokens successfully stored in session');
-        res.redirect('/fetchOutlookEmails');
+        
+        res.redirect(`${config.frontendUrl}/oauth/callback?provider=outlook&tokens=${accessToken}`);
     } catch (error) {
         logger.error('Error fetching Outlook tokens: ' + (error as Error).message);
         res.status(500).send('Error fetching Outlook tokens');

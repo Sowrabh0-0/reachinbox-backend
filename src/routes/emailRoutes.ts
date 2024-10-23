@@ -7,7 +7,7 @@ const router = Router();
 //Gmail OAuth
 router.get('/auth/google', startOAuth);
 router.get('/oauth2callback', handleOAuthCallback);
-router.get('/fetchEmails', fetchEmails);
+router.get('/fetchAllEmails', fetchEmails);
 
 
 //Outlook OAuth
