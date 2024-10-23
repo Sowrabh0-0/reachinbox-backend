@@ -34,7 +34,7 @@ export const getEmailById = async (tokens: any, emailId: string): Promise<any> =
     const res = await gmailClient.users.messages.get({
         userId: 'me',
         id: emailId,
-        format: 'full',  // Fetch full message details
+        format: 'full',
     });
 
     const emailData: gmail_v1.Schema$Message | undefined = res.data;
