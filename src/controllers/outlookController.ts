@@ -11,42 +11,54 @@ declare module 'express-session' {
 }
 
 
-export const startOutlookOAuth = async (req: Request, res: Response) => {
-    const authUrl = getAuthUrl();
-    res.redirect(await authUrl);
+export const startOutlookOAuth = async (req: Request, res: Response): Promise<void> => {
+    try {
+        logger.info('Starting Outlook OAuth flow');
+        const authUrl = await getAuthUrl();
+        res.redirect(authUrl);
+    } catch (error) {
+        logger.error('Error starting Outlook OAuth process: ' + (error as Error).message);
+        res.status(500).send('Error starting Outlook OAuth process');
+    }
 };
 
-
-export const handleOutlookOAuthCallback = async (req: any, res: any, next: any): Promise<any> => {
+export const handleOutlookOAuthCallback = async (req: Request, res: Response): Promise<void> => {
     const code = req.query.code as string;
 
     if (!code) {
-        return res.status(400).send('Authorization code not provided');
+        logger.error('Authorization code not provided for Outlook');
+        res.status(400).send('Authorization code not provided');
+        return;
     }
 
     try {
+        logger.info('Outlook OAuth callback received, fetching tokens');
         const accessToken = await fetchTokens(code);
-        req.session.outlookAccessToken = accessToken;
-        res.redirect('/dashboard');
+        req.session.outlookAccessToken = accessToken;  
+        logger.info('Outlook tokens successfully stored in session');
+        res.redirect('/fetchOutlookEmails');
     } catch (error) {
-        logger.error('Error fetching Outlook tokens:', error);
-        return res.status(500).send('Error fetching Outlook tokens');
+        logger.error('Error fetching Outlook tokens: ' + (error as Error).message);
+        res.status(500).send('Error fetching Outlook tokens');
     }
 };
 
-
-export const getOutlookEmails = async (req: Request, res: Response) => {
-    const accessToken = req.session.outlookAccessToken; 
+export const getOutlookEmails = async (req: Request, res: Response): Promise<void> => {
+    const accessToken = req.session.outlookAccessToken;
 
     if (!accessToken) {
-        return res.status(401).send('Not authenticated');
+        logger.warn('No Outlook tokens found in session');
+        res.status(401).send('Not authenticated');
+        return;
     }
 
     try {
-        const emails = await fetchOutlookEmails(accessToken);  
-        return res.json(emails); 
+        logger.info('Fetching Outlook emails');
+        const emails = await fetchOutlookEmails(accessToken);
+        logger.info('Outlook emails successfully fetched');
+        res.json(emails);
     } catch (error) {
-        logger.error('Error fetching Outlook emails:', error);
-        return res.status(500).send('Error fetching Outlook emails');
+        logger.error('Error fetching Outlook emails: ' + (error as Error).message);
+        res.status(500).send('Error fetching Outlook emails');
     }
 };

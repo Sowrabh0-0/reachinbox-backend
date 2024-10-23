@@ -1,53 +1,62 @@
 import { Request, Response, NextFunction } from 'express';
-import { emailService } from '../services/emailService';
+import session from 'express-session';
+import { emailService } from '../services/oauthService';
 import logger from '../utils/logger';
+
+declare module 'express-session' {
+    interface SessionData {
+        tokens: any;
+    }
+}
 
 export const startOAuth = (req: Request, res: Response, next: NextFunction): void => {
     try {
-        logger.info('Starting OAuth flow');
-        const authUrl = emailService.getAuthUrl(); 
+        logger.info('Starting Gmail OAuth flow');
+        const authUrl = emailService.getAuthUrl();
         res.redirect(authUrl);  
     } catch (error) {
-        logger.error('Error starting OAuth process: ' + (error as Error).message);
-        res.status(500).send('Error starting OAuth process');
+        logger.error('Error starting Gmail OAuth process: ' + (error as Error).message);
+        res.status(500).send('Error starting Gmail OAuth process');
     }
 };
 
-export const handleOAuthCallback = async (req: any, res: any, next: any): Promise<any> => {
+export const handleOAuthCallback = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const code = req.query.code as string;
 
     if (!code) {
-        logger.error('Authorization code not provided');
-        return res.status(400).send('Authorization code not provided');
+        logger.error('Authorization code not provided for Gmail');
+        res.status(400).send('Authorization code not provided');
+        return;
     }
 
     try {
-        logger.info('OAuth callback received, fetching tokens');
+        logger.info('Gmail OAuth callback received, fetching tokens');
         const tokens = await emailService.fetchTokens(code);
         req.session.tokens = tokens;  
-        logger.info('Tokens successfully stored in session');
-        res.redirect('/api/emails/fetchEmails');  
+        logger.info('Gmail tokens successfully stored in session');
+        res.redirect('/fetchEmails'); 
     } catch (error) {
-        logger.error('Error retrieving access tokens: ' + (error as Error).message);
-        return res.status(500).send('Error retrieving access tokens');
+        logger.error('Error retrieving Gmail access tokens: ' + (error as Error).message);
+        res.status(500).send('Error retrieving Gmail access tokens');
     }
 };
 
-export const fetchEmails = async (req: any, res: any, next: any): Promise<any> => {
-    const tokens = req.session.tokens;  
+export const fetchEmails = async (req: Request, res: Response): Promise<void> => {
+    const tokens = req.session.tokens;
 
     if (!tokens) {
-        logger.warn('No tokens found in session');
-        return res.status(401).send('Not authenticated');
+        logger.warn('No Gmail tokens found in session');
+        res.status(401).send('Not authenticated');
+        return;
     }
 
     try {
-        logger.info('Fetching emails');
+        logger.info('Fetching Gmail emails');
         const emails = await emailService.fetchEmails(tokens);  
-        logger.info('Emails successfully fetched');
-        return res.json(emails);  
+        logger.info('Gmail emails successfully fetched');
+        res.json(emails);  
     } catch (error) {
-        logger.error('Error fetching emails: ' + (error as Error).message);
-        return res.status(500).send('Error fetching emails');
+        logger.error('Error fetching Gmail emails: ' + (error as Error).message);
+        res.status(500).send('Error fetching Gmail emails');
     }
 };

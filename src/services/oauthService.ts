@@ -13,18 +13,14 @@ export const emailService = {
         });
     },
 
-
     fetchTokens: async (code: string): Promise<any> => {
         const { tokens } = await oauth2Client.getToken(code);  
         oauth2Client.setCredentials(tokens);  
-
         return tokens; 
     },
 
     fetchEmails: async (tokens: any): Promise<any> => {
         const gmailClient = setGmailClient(tokens);
-
-
         const res = await gmailClient.users.messages.list({
             userId: 'me',  
             maxResults: 10,  
