@@ -2,7 +2,6 @@ import { createClient } from 'redis';
 import { config } from '../config/env';
 import logger from './logger';
 
-// Initialize Redis client with the specified host, port, and password
 const redisClient = createClient({
     password: config.redispassword,
     socket: {
@@ -11,12 +10,12 @@ const redisClient = createClient({
     }
 });
 
-// Event handler for Redis errors
+
 redisClient.on('error', (err: any) => {
     logger.error('Redis Client Error', err);
 });
 
-// Connect to Redis server
+
 (async () => {
     try {
         await redisClient.connect();
@@ -26,7 +25,6 @@ redisClient.on('error', (err: any) => {
     }
 })();
 
-// Function to check if an email is already processed
 export const isEmailProcessed = async (emailId: string): Promise<boolean> => {
     try {
         const exists = await redisClient.exists(emailId);
@@ -38,7 +36,6 @@ export const isEmailProcessed = async (emailId: string): Promise<boolean> => {
     }
 };
 
-// Function to mark an email as processed
 export const markEmailAsProcessed = async (emailId: string): Promise<void> => {
     try {
         await redisClient.set(emailId, 'processed');
@@ -48,7 +45,6 @@ export const markEmailAsProcessed = async (emailId: string): Promise<void> => {
     }
 };
 
-// Graceful shutdown to close Redis connection
 process.on('SIGINT', async () => {
     try {
         await redisClient.quit();

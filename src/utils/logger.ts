@@ -12,10 +12,9 @@ const logger = createLogger({
         timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), 
         logFormat  
     ),
-    // transports: [
-    //     new transports.Console(),  
-    //     new transports.File({ filename: 'logs/app.log' })
-    // ]
+    transports: [
+        new transports.Console(),
+    ]
 });
 
 export default logger;
