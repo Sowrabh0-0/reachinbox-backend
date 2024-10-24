@@ -1,20 +1,11 @@
-import { Router } from 'express';
-import { startOAuth, handleOAuthCallback, fetchEmails } from '../controllers/oauthController';
-import { handleOutlookOAuthCallback, startOutlookOAuth, getOutlookEmails } from '../controllers/outlookController';
+import express from 'express';
+import gmailRoutes from './gmailRoutes';
+import outlookRoutes from './outlookRoutes';
 
-const router = Router();
+const router = express.Router();
 
-//Gmail OAuth
-router.get('/auth/google', startOAuth);
-router.get('/oauth2callback', handleOAuthCallback);
-router.get('/fetchGmailEmails', fetchEmails);
+router.use(gmailRoutes);
 
-
-//Outlook OAuth
-router.get('/auth/outlook', startOutlookOAuth);  
-router.get('/outlook/callback', handleOutlookOAuthCallback);  
-router.get('/fetchOutlookEmails', getOutlookEmails); 
-
-
+router.use(outlookRoutes);
 
 export default router;

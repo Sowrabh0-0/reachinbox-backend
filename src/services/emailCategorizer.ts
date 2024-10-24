@@ -21,7 +21,7 @@ export const categorizeEmail = async (subject: string, body: string): Promise<st
     `;
 
     const response = await client.chat.completions.create({
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
         messages: [{ role: 'user', content: prompt }],
     });
 

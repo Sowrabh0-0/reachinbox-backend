@@ -1,19 +1,18 @@
-import { Request, Response } from 'express';
-import { getAuthUrl, fetchTokens, fetchOutlookEmails } from '../services/outlookService';
+import { Request, Response, NextFunction } from 'express';
+import { getOutlookAuthUrl, fetchOutlookTokens, getOutlookEmails } from '../services/outlookService';
 import logger from '../utils/logger';
-import 'express-session';
 import { config } from '../config/env';
 
 declare module 'express-session' {
-    interface Session {
-        outlookAccessToken?: string;
+    interface SessionData {
+        outlookAccessToken: string;
     }
 }
 
-export const startOutlookOAuth = async (req: Request, res: Response): Promise<void> => {
+export const startOutlookOAuth = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         logger.info('Starting Outlook OAuth flow');
-        const authUrl = await getAuthUrl();
+        const authUrl = await getOutlookAuthUrl();
         res.redirect(authUrl);
     } catch (error) {
         logger.error('Error starting Outlook OAuth process: ' + (error as Error).message);
@@ -21,7 +20,7 @@ export const startOutlookOAuth = async (req: Request, res: Response): Promise<vo
     }
 };
 
-export const handleOutlookOAuthCallback = async (req: Request, res: Response): Promise<void> => {
+export const handleOutlookOAuthCallback = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const code = req.query.code as string;
 
     if (!code) {
@@ -32,21 +31,20 @@ export const handleOutlookOAuthCallback = async (req: Request, res: Response): P
 
     try {
         logger.info('Outlook OAuth callback received, fetching tokens');
-        const accessToken = await fetchTokens(code);
+        const accessToken = await fetchOutlookTokens(code);
         req.session.outlookAccessToken = accessToken;
 
         logger.info('Outlook tokens successfully stored in session');
-        const redirectUrl = `${config.frontendUrl}/oauth-callback?provider=outlook&tokens=${encodeURIComponent(JSON.stringify(accessToken))}`;
-        console.log(redirectUrl);
-
+        const redirectUrl = `${config.frontendUrl}/oauth-callback?provider=outlook&tokens=${encodeURIComponent(accessToken)}`;
+        logger.info(`Redirecting to ${redirectUrl}`);
         res.redirect(redirectUrl);
     } catch (error) {
-        logger.error('Error fetching Outlook tokens: ' + (error as Error).message);
-        res.status(500).send('Error fetching Outlook tokens');
+        logger.error('Error retrieving Outlook access tokens: ' + (error as Error).message);
+        res.status(500).send('Error retrieving Outlook access tokens');
     }
 };
 
-export const getOutlookEmails = async (req: Request, res: Response): Promise<void> => {
+export const fetchOutlookEmails = async (req: Request, res: Response): Promise<void> => {
     const accessToken = req.session.outlookAccessToken;
 
     if (!accessToken) {
@@ -57,7 +55,7 @@ export const getOutlookEmails = async (req: Request, res: Response): Promise<voi
 
     try {
         logger.info('Fetching Outlook emails');
-        const emails = await fetchOutlookEmails(accessToken);
+        const emails = await getOutlookEmails(accessToken);
         logger.info('Outlook emails successfully fetched');
         res.json(emails);
     } catch (error) {

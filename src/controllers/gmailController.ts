@@ -1,20 +1,18 @@
 import { Request, Response, NextFunction } from 'express';
-import session from 'express-session';
-import { getAuthUrl, fetchTokens, fetchAllEmailDetails } from '../services/oauthService';
+import { getGmailAuthUrl, fetchGmailTokens, getGmailEmails } from '../services/gmailService';
 import logger from '../utils/logger';
 import { config } from '../config/env';
 
 declare module 'express-session' {
     interface SessionData {
-        tokens: any;
+        gmailTokens: any;
     }
 }
 
-
-export const startOAuth = (req: Request, res: Response, next: NextFunction): void => {
+export const startGmailOAuth = (req: Request, res: Response, next: NextFunction): void => {
     try {
         logger.info('Starting Gmail OAuth flow');
-        const authUrl = getAuthUrl();
+        const authUrl = getGmailAuthUrl();
         res.redirect(authUrl);  
     } catch (error) {
         logger.error('Error starting Gmail OAuth process: ' + (error as Error).message);
@@ -22,7 +20,7 @@ export const startOAuth = (req: Request, res: Response, next: NextFunction): voi
     }
 };
 
-export const handleOAuthCallback = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+export const handleGmailOAuthCallback = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const code = req.query.code as string;
 
     if (!code) {
@@ -33,22 +31,21 @@ export const handleOAuthCallback = async (req: Request, res: Response, next: Nex
 
     try {
         logger.info('Gmail OAuth callback received, fetching tokens');
-        const tokens = await fetchTokens(code);
-        console.log(tokens);
-        req.session.tokens = tokens;
+        const tokens = await fetchGmailTokens(code);
+        req.session.gmailTokens = tokens;
 
         logger.info('Gmail tokens successfully stored in session');
         const redirectUrl = `${config.frontendUrl}/oauth-callback?provider=gmail&tokens=${encodeURIComponent(JSON.stringify(tokens))}`;
-        console.log(redirectUrl);
-        res.redirect(redirectUrl); 
+        logger.info(`Redirecting to ${redirectUrl}`);
+        res.redirect(redirectUrl);
     } catch (error) {
         logger.error('Error retrieving Gmail access tokens: ' + (error as Error).message);
         res.status(500).send('Error retrieving Gmail access tokens');
     }
 };
 
-export const fetchEmails = async (req: Request, res: Response): Promise<void> => {
-    const tokens = req.session.tokens;
+export const fetchGmailEmails = async (req: Request, res: Response): Promise<void> => {
+    const tokens = req.session.gmailTokens;
 
     if (!tokens) {
         logger.warn('No Gmail tokens found in session');
@@ -58,7 +55,7 @@ export const fetchEmails = async (req: Request, res: Response): Promise<void> =>
 
     try {
         logger.info('Fetching Gmail emails');
-        const emails = await fetchAllEmailDetails(tokens);
+        const emails = await getGmailEmails(tokens);
         logger.info('Gmail emails successfully fetched');
         res.json(emails);  
     } catch (error) {
