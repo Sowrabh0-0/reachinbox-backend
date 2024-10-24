@@ -8,7 +8,7 @@ import redisClient from './utils/redisClient'; // Import your Redis client
 const app = express();
 
 app.use(cors({
-    origin: 'http://localhost:3000',  
+    origin: ['http://localhost:3000' , 'https://reachinbox-frontend-livid.vercel.app'],  
     credentials: true 
 }));
 
