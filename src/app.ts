@@ -3,7 +3,7 @@ import emailRoutes from './routes/emailRoutes';
 import session from 'express-session';
 import { config } from './config/env';
 import cors from 'cors';
-import redisClient from './utils/redisClient'; // Import your Redis client
+import redisClient from './utils/redisClient';
 
 const app = express();
 
@@ -18,10 +18,10 @@ app.use(session({
     secret: config.sessionSecret,
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: true }
+    cookie: { secure: false }
 }));
 
-// Email-related routes
+
 app.use('/api', emailRoutes);
 
 app.post('/api/flush-redis', async (req, res) => {

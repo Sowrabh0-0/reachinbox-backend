@@ -45,6 +45,8 @@ export const handleGmailOAuthCallback = async (req: Request, res: Response, next
 };
 
 export const fetchGmailEmails = async (req: Request, res: Response): Promise<void> => {
+    console.log('Session:', req.session);
+    console.log('Authorization header:', req.headers.authorization);
     const tokens = req.session.gmailTokens;
 
     if (!tokens) {
