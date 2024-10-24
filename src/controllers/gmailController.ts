@@ -32,7 +32,7 @@ export const handleGmailOAuthCallback = async (req: Request, res: Response, next
     try {
         logger.info('Gmail OAuth callback received, fetching tokens');
         const tokens = await fetchGmailTokens(code);
-        req.session.gmailTokens = tokens;
+        req.session.gmailTokens = tokens;  // Store Gmail tokens in session
 
         logger.info('Gmail tokens successfully stored in session');
         const redirectUrl = `${config.frontendUrl}/oauth-callback?provider=gmail&tokens=${encodeURIComponent(JSON.stringify(tokens))}`;

@@ -20,17 +20,21 @@ export const categorizeEmail = async (subject: string, body: string): Promise<st
     Classification:
     `;
 
-    const response = await client.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [{ role: 'user', content: prompt }],
-    });
+    try {
+        const response = await client.chat.completions.create({
+            model: 'gpt-4o-mini',  
+            messages: [{ role: 'user', content: prompt }],
+        });
 
-    if (response && response.choices && response.choices.length > 0) {
-        const messageContent = response.choices[0]?.message?.content?.trim();
+        const messageContent = response?.choices?.[0]?.message?.content?.trim();
         if (messageContent) {
             return messageContent;
         }
+    } catch (error) {
+        const errorMessage = (error as any).message || error;
+        console.error(`Error categorizing email: ${errorMessage}`);
     }
 
-    return 'No classification';
+    return 'Unclassified';
 };
+
