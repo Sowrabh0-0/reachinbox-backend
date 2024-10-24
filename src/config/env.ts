@@ -15,6 +15,6 @@ export const config = {
     openAiApiKey: process.env.OPENAI_API_KEY || '',
     redispassword: process.env.REDIS_PASS || '',
     redishost: process.env.REDIS_HOST || '',
-    port: process.env.PORT || 3000,
+    port: process.env.PORT ,
     frontendUrl: process.env.FRONTEND_URL || '',
 };
