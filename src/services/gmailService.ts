@@ -1,7 +1,7 @@
 import { setGmailClient, oauth2Client } from '../utils/oauthUtils';
 import { categorizeEmail } from './emailCategorizer';
-import { isEmailProcessed } from '../utils/redisClient'; // No need to import markEmailAsProcessed here
-import { emailQueue } from '../utils/bullMQ'; // Import BullMQ queue
+import { isEmailProcessed } from '../utils/redisClient';
+import { emailQueue } from '../utils/bullMQ';
 
 export const getGmailAuthUrl = (): string => {
     const scopes = [
@@ -63,7 +63,6 @@ export const getGmailEmails = async (tokens: any): Promise<any[]> => {
 
                     const emailCategory = await categorizeEmail(subject, body);
 
-                    // Add email to the BullMQ queue for processing and reply
                     await emailQueue.add('emailQueue', {
                         emailId: email.id,
                         subject,
@@ -71,7 +70,7 @@ export const getGmailEmails = async (tokens: any): Promise<any[]> => {
                         from,
                         category: emailCategory,
                         provider: 'gmail',
-                        tokens: tokens, // Pass the tokens for sending email
+                        tokens: tokens,
                     });
 
                     return {

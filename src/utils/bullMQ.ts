@@ -21,29 +21,31 @@ export const emailWorker = new Worker(
 
         const { emailId, subject, body, from, category, provider, tokens } = job.data;
 
+        console.log('Processing email inside :', from, category);
+
         const alreadyProcessed = await isEmailProcessed(emailId);
         if (alreadyProcessed) {
             logger.info(`Skipping email ${emailId} as it has already been processed.`);
             return;
         }
 
-        logger.info(`Sending reply for email: ${emailId}, category: ${category}`);
+        logger.info(`Sending reply for email: ${from}, category: ${category}`);
 
         try {
             // Send reply based on the category of the email and the provider (Gmail or Outlook)
             if (category === 'Interested') {
-                logger.info(`Sending interested reply for email: ${emailId}`);
+                logger.info(`Sending interested reply for email: ${from}`);
                 await sendInterestedReply(provider, tokens, from, subject, body);
             } else if (category === 'Not Interested') {
-                logger.info(`Sending not interested reply for email: ${emailId}`);
+                logger.info(`Sending not interested reply for email: ${from}`);
                 await sendNotInterestedReply(provider, tokens, from, subject, body);
             } else if (category === 'More Information') {
-                logger.info(`Sending more information reply for email: ${emailId}`);
+                logger.info(`Sending more information reply for email: ${from}`);
                 await sendMoreInfoReply(provider, tokens, from, subject, body);
             }
 
             // Only mark email as processed after the reply has been successfully sent
-            logger.info(`Marking email ${emailId} as processed.`);
+            logger.info(`Marking email ${from} as processed.`);
             await markEmailAsProcessed(emailId);
 
         } catch (error) {
